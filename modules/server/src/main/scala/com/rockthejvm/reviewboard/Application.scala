@@ -2,6 +2,7 @@ package com.rockthejvm.reviewboard
 
 import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.http.controllers.{CompanyController, HealthController}
+import com.rockthejvm.reviewboard.services.CompanyService
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.{ZioHttpInterpreter, ZioHttpServerOptions}
 import zio.*
@@ -17,7 +18,5 @@ object Application extends ZIOAppDefault {
     _ <- Console.printLine("Server is started at :8080")
   } yield ()
 
-
-
-  override def run: Task[Unit] = serverProgram.provide(Server.default)
+  override def run: Task[Unit] = serverProgram.provide(Server.default, CompanyService.dummyLayer)
 }

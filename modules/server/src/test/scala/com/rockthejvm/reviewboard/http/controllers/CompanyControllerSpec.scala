@@ -2,6 +2,7 @@ package com.rockthejvm.reviewboard.http.controllers
 
 import com.rockthejvm.reviewboard.domain.data.Company
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
+import com.rockthejvm.reviewboard.services.CompanyService
 import com.rockthejvm.reviewboard.syntax.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -16,6 +17,23 @@ import zio.test.*
 object CompanyControllerSpec extends ZIOSpecDefault {
 
   private given zioME: MonadError[Task] = new RIOMonadError[Any]
+
+  private val rockTheJVM = Company(1, "rock-the-jvm", "Rock the JVM", "rockthejvm.com")
+
+  private val serviceStub = new CompanyService {
+    override def create(req: CreateCompanyRequest): Task[Company] =
+      ZIO.succeed(rockTheJVM)
+
+    override def getAll: Task[List[Company]] = ZIO.succeed(List(rockTheJVM))
+
+    override def getById(id: Long): Task[Option[Company]] = ZIO.succeed {
+      if (id == 1) Some(rockTheJVM) else None
+    }
+
+    override def getBySlug(slug: String): Task[Option[Company]] = ZIO.succeed {
+      if (slug == "rock-the-jvm") Some(rockTheJVM) else None
+    }
+  }
 
   private def backendStubZIO(endpointFn: CompanyController => ServerEndpoint[Any, Task]) = for {
     // create the controller
@@ -61,7 +79,7 @@ object CompanyControllerSpec extends ZIOSpecDefault {
         program.assert { responseBody =>
           responseBody.toOption
             .flatMap(_.fromJson[List[Company]].toOption)
-            .contains(List.empty)
+            .contains(List(rockTheJVM))
         }
       },
       test("get by id") {
@@ -77,8 +95,8 @@ object CompanyControllerSpec extends ZIOSpecDefault {
         program.assert { responseBody =>
           responseBody.toOption
             .flatMap(_.fromJson[Company].toOption)
-            .isEmpty
+            .contains(rockTheJVM)
         }
       }
-    )
+    ).provide(ZLayer.succeed(serviceStub))
 }

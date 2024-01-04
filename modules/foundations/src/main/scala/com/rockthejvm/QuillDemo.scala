@@ -8,8 +8,8 @@ object QuillDemo extends ZIOAppDefault {
 
   val program = for {
     repo <- ZIO.service[JobRepository]
-    _ <- repo.create(Job(-1, "Software engineer", "rockthejvm.com", "Rock the JVM"))
-    _ <- repo.create(Job(-1, "Instructor", "rockthejvm.com", "Rock the JVM"))
+    _    <- repo.create(Job(-1, "Software engineer", "rockthejvm.com", "Rock the JVM"))
+    _    <- repo.create(Job(-1, "Instructor", "rockthejvm.com", "Rock the JVM"))
   } yield ()
 
   override def run: ZIO[Any with ZIOAppArgs with Scope, Any, Any] = program.provide(
@@ -35,15 +35,15 @@ class JobRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends JobRepository 
   import quill.*
 
   // step 2 = schemas for create, update ...
-  inline given schema: SchemaMeta[Job]  = schemaMeta[Job]("jobs") // specify the table name
+  inline given schema: SchemaMeta[Job] = schemaMeta[Job]("jobs") // specify the table name
   inline given inMeta: InsertMeta[Job] = insertMeta[Job](_.id)   // id column will be excluded in insert statements
   inline given upMeta: UpdateMeta[Job] = updateMeta[Job](_.id)   // same for update statements
 
   override def create(job: Job): Task[Job] = run {
-      query[Job]
-        .insertValue(lift(job))
-        .returning(j => j)
-    }
+    query[Job]
+      .insertValue(lift(job))
+      .returning(j => j)
+  }
 
   override def update(id: Long, op: Job => Job): Task[Job] = for {
     current <- getById(id).someOrFail(new RuntimeException("Could not update: missing key $id"))

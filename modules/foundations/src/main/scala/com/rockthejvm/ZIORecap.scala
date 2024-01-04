@@ -76,7 +76,7 @@ object ZIORecap extends ZIOAppDefault {
 
   // many APIs on top of fibers
   val aPairPar_v2: UIO[(RuntimeFlags, RuntimeFlags)] = delayedValue.zipPar(delayedValue)
-  val randomx10: UIO[Seq[RuntimeFlags]] = ZIO.foreachPar(1 to 10)(_ => delayedValue) // "traverse"
+  val randomx10: UIO[Seq[RuntimeFlags]]              = ZIO.foreachPar(1 to 10)(_ => delayedValue) // "traverse"
 
   // dependencies
   case class User(name: String, email: String)
