@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres
+    container_name: postgres
     restart: always
     volumes:
       - "./sql:/docker-entrypoint-initdb.d"
