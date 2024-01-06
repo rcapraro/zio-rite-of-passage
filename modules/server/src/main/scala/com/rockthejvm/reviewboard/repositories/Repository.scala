@@ -8,7 +8,7 @@ import javax.sql.DataSource
 
 object Repository {
 
-  private def quillLayer: URLayer[DataSource, Quill.Postgres[SnakeCase.type]] =
+  def quillLayer: URLayer[DataSource, Quill.Postgres[SnakeCase.type]] =
     Quill.Postgres.fromNamingStrategy(SnakeCase)
 
   private def dataSourceLayer: TaskLayer[DataSource] =
