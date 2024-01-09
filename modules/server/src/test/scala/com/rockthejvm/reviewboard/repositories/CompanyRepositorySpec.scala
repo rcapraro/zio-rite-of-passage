@@ -9,6 +9,8 @@ import java.sql.SQLException
 import javax.sql.DataSource
 object CompanyRepositorySpec extends ZIOSpecDefault with RepositorySpec {
 
+  override val initScript: String = "sql/companies.sql"
+
   private val rtjvm = Company(1L, "rock-the-jvm", "Rock the JVM", "rockthejvm.com")
 
   private def genCompany(): Company =
@@ -85,8 +87,8 @@ object CompanyRepositorySpec extends ZIOSpecDefault with RepositorySpec {
       }
     ).provide(
       CompanyRepositoryLive.layer,
-      dataSourceLayer,
       Repository.quillLayer,
+      postgresDataSourceLayer,
       Scope.default
     )
 

@@ -101,9 +101,8 @@ object CompanyServiceSpec extends ZIOSpecDefault {
             companies <- service(_.getAll)
           } yield (company1, company2, companies)
 
-          program.assert {
-            case (company1, company2, companies) =>
-              companies.toSet == Set(company1, company2)
+          program.assert { case (company1, company2, companies) =>
+            companies.toSet == Set(company1, company2)
           }
         }
       }

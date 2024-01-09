@@ -2,7 +2,7 @@ package com.rockthejvm.reviewboard.domain.data
 
 import zio.json.{DeriveJsonCodec, JsonCodec}
 
-case class Company(
+final case class Company(
     id: Long,
     slug: String,
     name: String,

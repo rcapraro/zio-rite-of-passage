@@ -5,7 +5,6 @@ import io.getquill.*
 import io.getquill.jdbczio.Quill
 import zio.*
 trait CompanyRepository {
-
   def create(company: Company): Task[Company]
   def update(id: Long, op: Company => Company): Task[Company]
   def delete(id: Long): Task[Company]
@@ -14,7 +13,7 @@ trait CompanyRepository {
   def getAll: Task[List[Company]]
 }
 
-class CompanyRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
+class CompanyRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends CompanyRepository {
 
   import quill.*
 
