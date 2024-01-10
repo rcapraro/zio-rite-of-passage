@@ -2,8 +2,6 @@ package com.rockthejvm.reviewboard.http.requests
 
 import zio.json.{DeriveJsonCodec, JsonCodec}
 
-import java.time.Instant
-
 case class CreateReviewRequest(
     companyId: Long,
     management: Int,
@@ -14,6 +12,6 @@ case class CreateReviewRequest(
     review: String
 )
 
-object Review {
+object CreateReviewRequest {
   given codec: JsonCodec[CreateReviewRequest] = DeriveJsonCodec.gen[CreateReviewRequest]
 }

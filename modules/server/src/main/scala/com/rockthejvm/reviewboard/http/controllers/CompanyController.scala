@@ -10,15 +10,10 @@ import scala.collection.mutable
 
 class CompanyController private (service: CompanyService) extends BaseController with CompanyEndpoints {
 
-  // create
-  val create: ServerEndpoint[Any, Task] = createEndpoint.serverLogicSuccess { req =>
-    service.create(req)
-  }
+  val create: ServerEndpoint[Any, Task] = createEndpoint.serverLogicSuccess(req => service.create(req))
 
-  // getAll
   val getAll: ServerEndpoint[Any, Task] = getAllEndpoint.serverLogicSuccess(_ => service.getAll)
 
-  // getById
   val getById: ServerEndpoint[Any, Task] = getByIdEndpoint.serverLogicSuccess { id =>
     ZIO
       .attempt(id.toLong)
@@ -32,7 +27,6 @@ class CompanyController private (service: CompanyService) extends BaseController
 }
 
 object CompanyController {
-  val makeZIO: URIO[CompanyService, CompanyController] = for {
-    service <- ZIO.service[CompanyService]
-  } yield new CompanyController(service)
+  val makeZIO: URIO[CompanyService, CompanyController] =
+    ZIO.serviceWith[CompanyService](service => CompanyController(service))
 }

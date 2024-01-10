@@ -1,8 +1,8 @@
 package com.rockthejvm.reviewboard
 
 import com.rockthejvm.reviewboard.http.HttpApi
-import com.rockthejvm.reviewboard.repositories.{CompanyRepositoryLive, Repository}
-import com.rockthejvm.reviewboard.services.CompanyServiceLive
+import com.rockthejvm.reviewboard.repositories.{CompanyRepositoryLive, Repository, ReviewRepositoryLive}
+import com.rockthejvm.reviewboard.services.{CompanyServiceLive, ReviewServiceLive}
 import io.getquill.SnakeCase
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.{ZioHttpInterpreter, ZioHttpServerOptions}
@@ -23,8 +23,10 @@ object Application extends ZIOAppDefault {
     Server.default,
     // services
     CompanyServiceLive.layer,
+    ReviewServiceLive.layer,
     // repos
     CompanyRepositoryLive.layer,
+    ReviewRepositoryLive.layer,
     // database
     Repository.dataLayer
   )
