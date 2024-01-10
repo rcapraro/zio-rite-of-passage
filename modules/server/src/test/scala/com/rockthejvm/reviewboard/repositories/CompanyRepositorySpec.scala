@@ -74,7 +74,7 @@ object CompanyRepositorySpec extends ZIOSpecDefault with RepositorySpec {
 
         program.assert(_.isEmpty)
       },
-      test("getAll companies") {
+      test("get all companies") {
         val program = for {
           repo             <- ZIO.service[CompanyRepository]
           companies        <- ZIO.foreach(1 to 10)(_ => repo.create(genCompany()))

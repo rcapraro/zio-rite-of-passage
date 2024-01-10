@@ -29,8 +29,6 @@ class CompanyServiceLive private (repo: CompanyRepository) extends CompanyServic
 
 object CompanyServiceLive {
   val layer: URLayer[CompanyRepository, CompanyServiceLive] = ZLayer {
-    for {
-      repo <- ZIO.service[CompanyRepository]
-    } yield CompanyServiceLive(repo)
+    ZIO.serviceWith[CompanyRepository](repo => CompanyServiceLive(repo))
   }
 }

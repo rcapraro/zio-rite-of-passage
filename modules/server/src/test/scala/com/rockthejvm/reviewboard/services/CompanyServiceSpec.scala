@@ -106,5 +106,8 @@ object CompanyServiceSpec extends ZIOSpecDefault {
           }
         }
       }
-    ).provide(CompanyServiceLive.layer, stubRepoLayer)
+    ).provide(
+      CompanyServiceLive.layer,
+      stubRepoLayer
+    )
 }

@@ -69,7 +69,7 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec {
             fetchedReview3.contains(review)
         )
       },
-      test("get all") {
+      test("get all reviews") {
         for {
           repo           <- ZIO.service[ReviewRepository]
           goodReview     <- repo.create(goodReview)
@@ -87,20 +87,20 @@ object ReviewRepositorySpec extends ZIOSpecDefault with RepositorySpec {
           review  <- repo.create(goodReview)
           updated <- repo.update(review.id, _.copy(review = "not too bad"))
         } yield assertTrue(
-          review.id == updated.id &&
-            review.companyId == updated.companyId &&
-            review.userId == updated.userId &&
-            review.management == updated.management &&
-            review.culture == updated.culture &&
-            review.salary == updated.salary &&
-            review.benefits == updated.benefits &&
-            review.wouldRecommend == updated.wouldRecommend &&
-            review.review == "not too bad" &&
-            review.created == updated.created &&
-            review.updated != updated.updated
+          updated.id == review.id &&
+            updated.companyId == review.companyId &&
+            updated.userId == review.userId &&
+            updated.management == review.management &&
+            updated.culture == review.culture &&
+            updated.salary == review.salary &&
+            updated.benefits == review.benefits &&
+            updated.wouldRecommend == review.wouldRecommend &&
+            updated.review == "not too bad" &&
+            updated.created == review.created &&
+            updated.updated.isAfter(review.updated)
         )
       },
-      test("delete") {
+      test("delete review") {
         for {
           repo        <- ZIO.service[ReviewRepository]
           review      <- repo.create(goodReview)
