@@ -1,0 +1,8 @@
+### Create a company
+POST http://localhost:8080/companies
+Content-Type: application/json
+
+{
+  "name": "Rock the JVM",
+  "url": "rockthejvm.com"
+}

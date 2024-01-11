@@ -1,14 +1,15 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.errors.HttpError
 import com.rockthejvm.reviewboard.http.requests.*
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.*
 
-trait CompanyEndpoints {
+trait CompanyEndpoints extends BaseEndpoint {
 
-  val createEndpoint: Endpoint[Unit, CreateCompanyRequest, Unit, Company, Any] = endpoint
+  val createEndpoint: Endpoint[Unit, CreateCompanyRequest, Throwable, Company, Any] = baseEndpoint
     .tag("companies")
     .name("create")
     .description("Create a listing for a company")
@@ -17,8 +18,8 @@ trait CompanyEndpoints {
     .in(jsonBody[CreateCompanyRequest])
     .out(jsonBody[Company])
 
-  val getAllEndpoint: Endpoint[Unit, Unit, Unit, List[Company], Any] =
-    endpoint
+  val getAllEndpoint: Endpoint[Unit, Unit, Throwable, List[Company], Any] =
+    baseEndpoint
       .tag("companies")
       .name("getAll")
       .description("Get all company listing")
@@ -26,8 +27,8 @@ trait CompanyEndpoints {
       .get
       .out(jsonBody[List[Company]])
 
-  val getByIdEndpoint: Endpoint[Unit, String, Unit, Option[Company], Any] =
-    endpoint
+  val getByIdEndpoint: Endpoint[Unit, String, Throwable, Option[Company], Any] =
+    baseEndpoint
       .tag("companies")
       .name("getById")
       .description("Get a company by its id")

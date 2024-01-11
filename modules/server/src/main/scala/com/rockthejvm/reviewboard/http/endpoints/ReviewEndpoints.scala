@@ -1,14 +1,15 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import com.rockthejvm.reviewboard.domain.data.Review
+import com.rockthejvm.reviewboard.domain.errors.HttpError
 import com.rockthejvm.reviewboard.http.requests.*
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
 import sttp.tapir.json.zio.*
 
-trait ReviewEndpoints {
+trait ReviewEndpoints extends BaseEndpoint {
 
-  val createReviewEndpoint: Endpoint[Unit, CreateReviewRequest, Unit, Review, Any] = endpoint
+  val createReviewEndpoint: Endpoint[Unit, CreateReviewRequest, Throwable, Review, Any] = baseEndpoint
     .tag("reviews")
     .name("create")
     .description("Create a review for a company")
@@ -17,7 +18,7 @@ trait ReviewEndpoints {
     .in(jsonBody[CreateReviewRequest])
     .out(jsonBody[Review])
 
-  val getReviewByIdEndpoint: Endpoint[Unit, Long, Unit, Option[Review], Any] = endpoint
+  val getReviewByIdEndpoint: Endpoint[Unit, Long, Throwable, Option[Review], Any] = baseEndpoint
     .tag("reviews")
     .name("getById")
     .description("Get a review by its id")
@@ -25,7 +26,7 @@ trait ReviewEndpoints {
     .get
     .out(jsonBody[Option[Review]])
 
-  val getByCompanyIdEndpoint: Endpoint[Unit, Long, Unit, List[Review], Any] = endpoint
+  val getByCompanyIdEndpoint: Endpoint[Unit, Long, Throwable, List[Review], Any] = baseEndpoint
     .tag("reviews")
     .name("getByCompanyId")
     .description("Get a review for a company")
