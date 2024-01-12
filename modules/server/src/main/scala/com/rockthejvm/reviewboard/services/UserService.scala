@@ -1,6 +1,6 @@
 package com.rockthejvm.reviewboard.services
 
-import com.rockthejvm.reviewboard.domain.data.User
+import com.rockthejvm.reviewboard.domain.data.{User, UserToken}
 import com.rockthejvm.reviewboard.repositories.UserRepository
 import zio.*
 
@@ -11,12 +11,13 @@ import javax.crypto.spec.PBEKeySpec
 trait UserService {
   def registerUser(email: String, password: String): Task[User]
   def verifyPassword(email: String, password: String): Task[Boolean]
+  def generateToken(email: String, password: String): Task[Option[UserToken]]
 }
 
-class UserServiceLive private (repo: UserRepository) extends UserService {
+class UserServiceLive private (jwtService: JWTService, userRepo: UserRepository) extends UserService {
 
   override def registerUser(email: String, password: String): Task[User] =
-    repo.create(
+    userRepo.create(
       User(
         id = -1L,
         email = email,
@@ -26,19 +27,30 @@ class UserServiceLive private (repo: UserRepository) extends UserService {
 
   override def verifyPassword(email: String, password: String): Task[Boolean] =
     for {
-      existingUser <- repo
+      existingUser <- userRepo
         .getByEmail(email)
-        .someOrFail(new RuntimeException(s"Cannot verify the user ${email}: non existent"))
-      result <- ZIO.attempt(
+        .someOrFail(new RuntimeException(s"Cannot verify the user $email: non existent"))
+      verified <- ZIO.attempt(
         UserServiceLive.Hasher.validateHash(password, existingUser.email)
       )
-    } yield result
+    } yield verified
 
+  override def generateToken(email: String, password: String): Task[Option[UserToken]] =
+    for {
+      existingUser <- userRepo
+        .getByEmail(email)
+        .someOrFail(new RuntimeException(s"Cannot verify the user $email: non existent"))
+      verified   <- ZIO.attempt(UserServiceLive.Hasher.validateHash(password, existingUser.email))
+      maybeToken <- jwtService.createToken(existingUser).when(verified)
+    } yield maybeToken
 }
 
 object UserServiceLive {
-  val layer: URLayer[UserRepository, UserServiceLive] = ZLayer {
-    ZIO.serviceWith[UserRepository](repo => new UserServiceLive(repo))
+  val layer: URLayer[UserRepository & JWTService, UserServiceLive] = ZLayer {
+    for {
+      jwtService <- ZIO.service[JWTService]
+      userRepo   <- ZIO.service[UserRepository]
+    } yield new UserServiceLive(jwtService = jwtService, userRepo = userRepo)
   }
 
   object Hasher {
