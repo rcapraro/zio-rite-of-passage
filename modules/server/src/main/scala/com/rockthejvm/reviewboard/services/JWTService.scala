@@ -3,24 +3,21 @@ package com.rockthejvm.reviewboard.services
 import com.auth0.jwt.*
 import com.auth0.jwt.JWTVerifier.BaseVerification
 import com.auth0.jwt.algorithms.Algorithm
+import com.rockthejvm.reviewboard.config.{Configs, JWTConfig}
 import com.rockthejvm.reviewboard.domain.data.{User, UserId, UserToken}
 import zio.*
-
-import java.time.Instant
-
+import zio.config.*
 trait JWTService {
   def createToken(user: User): Task[UserToken]
   def verifyToken(token: String): Task[UserId]
 }
 
-class JWTServiceLive private (clock: java.time.Clock) extends JWTService {
+class JWTServiceLive private (jwtConfig: JWTConfig, clock: java.time.Clock) extends JWTService {
 
-  private val SECRET         = "secret"        // TODO pass this from config
   private val ISSUER         = "rockthejvm.com"
-  private val TTL            = 30 * 24 * 36000 // TODO pass this from config
   private val CLAIM_USERNAME = "username"
 
-  private val algorithm = Algorithm.HMAC512(SECRET)
+  private val algorithm = Algorithm.HMAC512(jwtConfig.secret)
   private val verifier: JWTVerifier =
     JWT
       .require(algorithm)
@@ -31,7 +28,7 @@ class JWTServiceLive private (clock: java.time.Clock) extends JWTService {
   override def createToken(user: User): Task[UserToken] =
     for {
       now        <- ZIO.attempt(clock.instant())
-      expiration <- ZIO.succeed(now.plusSeconds(TTL))
+      expiration <- ZIO.succeed(now.plusSeconds(jwtConfig.ttl))
       token <- ZIO
         .attempt(
           JWT
@@ -58,9 +55,15 @@ class JWTServiceLive private (clock: java.time.Clock) extends JWTService {
 }
 
 object JWTServiceLive {
-  val layer: ULayer[JWTServiceLive] = ZLayer {
-    Clock.javaClock.map(clock => new JWTServiceLive(clock))
+  val layer: URLayer[JWTConfig, JWTServiceLive] = ZLayer {
+    for {
+      jwtConfig <- ZIO.service[JWTConfig]
+      clock     <- Clock.javaClock
+    } yield new JWTServiceLive(jwtConfig, clock)
   }
+
+  val configuredLayer: Layer[Config.Error, JWTServiceLive] =
+    ZLayer.fromZIO(Configs.makeConfig[JWTConfig]("rockthejvm.jwt")) >>> layer
 }
 
 object JWTServiceDemo extends ZIOAppDefault {
@@ -73,7 +76,11 @@ object JWTServiceDemo extends ZIOAppDefault {
     _         <- Console.printLine(userId)
   } yield ()
 
-  override def run: ZIO[Any & ZIOAppArgs with Scope, Any, Any] =
-    program.provide(JWTServiceLive.layer)
+  override def run: ZIO[Any & ZIOAppArgs with Scope, Any, Any] = {
+    program.provide(
+      ZLayer.fromZIO(Configs.makeConfig[JWTConfig]("rockthejvm.jwt")),
+      JWTServiceLive.layer
+    )
+  }
 
 }
