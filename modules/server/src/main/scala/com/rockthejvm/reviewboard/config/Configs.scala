@@ -7,7 +7,7 @@ import zio.config.typesafe.*
 
 object Configs {
   def makeConfig[C](path: String)(using derive: DeriveConfig[C]): IO[Config.Error, C] = {
-    TypesafeConfigProvider
+    ConfigProvider
       .fromTypesafeConfig(ConfigFactory.load().getConfig(path))
       .load(deriveConfig[C])
   }
