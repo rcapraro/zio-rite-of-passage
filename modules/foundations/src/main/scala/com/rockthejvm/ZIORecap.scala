@@ -79,7 +79,7 @@ object ZIORecap extends ZIOAppDefault {
   val randomx10: UIO[Seq[RuntimeFlags]]              = ZIO.foreachPar(1 to 10)(_ => delayedValue) // "traverse"
 
   // dependencies
-  case class User(name: String, email: String)
+  final case class User(name: String, email: String)
 
   // ---
   class UserSubscription(emailService: EmailService, userDatabase: UserDatabase) {
@@ -120,7 +120,7 @@ object ZIORecap extends ZIOAppDefault {
       ZLayer.succeed(ConnectionPool(nConnections))
   }
 
-  case class Connection()
+  final case class Connection()
 
   def subscribe(user: User): RIO[UserSubscription, Unit] = for {
     sub <- ZIO.service[UserSubscription]

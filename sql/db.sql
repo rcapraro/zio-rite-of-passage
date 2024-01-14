@@ -13,8 +13,7 @@ CREATE TABLE IF NOT EXISTS companies (
     tags TEXT[]
 );
 
-CREATE TABLE IF NOT EXISTS reviews
-(
+CREATE TABLE IF NOT EXISTS reviews(
     id              BIGSERIAL PRIMARY KEY,
     company_id      BIGINT    NOT NULL,
     user_id         BIGINT    NOT NULL,
@@ -24,5 +23,12 @@ CREATE TABLE IF NOT EXISTS reviews
     benefits        INT       NOT NULL,
     would_recommend INT       NOT NULL,
     review          TEXT      NOT NULL,
-    created         TIMESTAMP NOT NULL DEFAULT now(),
-    updated
+    created         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    updated         TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS users(
+    id              BIGSERIAL PRIMARY KEY,
+    email  TEXT     UNIQUE  NOT NULL,
+    hashed_password TEXT NOT NULL
+);

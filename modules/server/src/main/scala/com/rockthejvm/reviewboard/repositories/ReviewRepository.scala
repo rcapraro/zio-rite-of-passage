@@ -5,6 +5,8 @@ import io.getquill.*
 import io.getquill.jdbczio.Quill
 import zio.*
 
+import java.time.Instant
+
 trait ReviewRepository {
   def create(review: Review): Task[Review]
   def getById(id: Long): Task[Option[Review]]
@@ -55,7 +57,7 @@ class ReviewRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends Re
       updated <- run(
         query[Review]
           .filter(_.id == lift(id))
-          .updateValue(lift(op(current)))
+          .updateValue(lift(op(current).copy(updated = Instant.now())))
           .returning(r => r)
       )
     } yield updated

@@ -3,7 +3,7 @@ package com.rockthejvm.reviewboard.http.requests
 import com.rockthejvm.reviewboard.domain.data.Company
 import zio.json.{DeriveJsonCodec, JsonCodec}
 
-case class CreateCompanyRequest(
+final case class CreateCompanyRequest(
     name: String,
     url: String,
     location: Option[String] = None,

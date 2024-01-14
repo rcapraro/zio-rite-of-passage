@@ -1,7 +1,6 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import com.rockthejvm.reviewboard.domain.data.Review
-import com.rockthejvm.reviewboard.domain.errors.HttpError
 import com.rockthejvm.reviewboard.http.requests.*
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*

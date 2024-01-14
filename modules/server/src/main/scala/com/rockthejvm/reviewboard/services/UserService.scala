@@ -75,7 +75,7 @@ class UserServiceLive private (jwtService: JWTService, userRepo: UserRepository)
       existingUser <- userRepo
         .getByEmail(email)
         .someOrFail(new RuntimeException(s"Cannot verify the user $email: non existent"))
-      verified   <- ZIO.attempt(UserServiceLive.Hasher.validateHash(password, existingUser.email))
+      verified   <- ZIO.attempt(UserServiceLive.Hasher.validateHash(password, existingUser.hashedPassword))
       maybeToken <- jwtService.createToken(existingUser).when(verified)
     } yield maybeToken
 }

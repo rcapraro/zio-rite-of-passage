@@ -2,7 +2,7 @@ package com.rockthejvm.reviewboard.http.requests
 
 import zio.json.{DeriveJsonCodec, JsonCodec}
 
-case class CreateReviewRequest(
+final case class CreateReviewRequest(
     companyId: Long,
     management: Int,
     culture: Int,
