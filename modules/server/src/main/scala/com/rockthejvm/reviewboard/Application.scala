@@ -27,13 +27,11 @@ object Application extends ZIOAppDefault {
 
   override def run: Task[Unit] = serverProgram.provide(
     Server.default,
-    // configs
-    ZLayer.fromZIO(Configs.makeConfig[JWTConfig]("rockthejvm.jwt")),
     // services
     CompanyServiceLive.layer,
     ReviewServiceLive.layer,
     UserServiceLive.layer,
-    JWTServiceLive.layer,
+    JWTServiceLive.configuredLayer,
     // repos
     CompanyRepositoryLive.layer,
     ReviewRepositoryLive.layer,
