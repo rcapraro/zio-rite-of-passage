@@ -10,7 +10,13 @@ import com.rockthejvm.reviewboard.http.requests.{
   UpdatePasswordRequest
 }
 import com.rockthejvm.reviewboard.http.responses.UserResponse
-import com.rockthejvm.reviewboard.repositories.{Repository, RepositorySpec, UserRepository, UserRepositoryLive}
+import com.rockthejvm.reviewboard.repositories.{
+  RecoveryTokensRepositoryLive,
+  Repository,
+  RepositorySpec,
+  UserRepository,
+  UserRepositoryLive
+}
 import com.rockthejvm.reviewboard.services.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -134,7 +140,9 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
     ).provide(
       UserServiceLive.layer,
       JWTServiceLive.layer,
+      EmailServiceLive.configuredLayer,
       UserRepositoryLive.layer,
+      RecoveryTokensRepositoryLive.configuredLayer,
       ZLayer.succeed(JWTConfig("secret", 3600)),
       Repository.quillLayer,
       postgresDataSourceLayer,

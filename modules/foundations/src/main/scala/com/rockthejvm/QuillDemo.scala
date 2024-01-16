@@ -42,7 +42,7 @@ class JobRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends JobRepository 
   override def create(job: Job): Task[Job] = run {
     query[Job]
       .insertValue(lift(job))
-      .returning(j => j)
+      .returning(r => r)
   }
 
   override def update(id: Long, op: Job => Job): Task[Job] = for {
@@ -51,7 +51,7 @@ class JobRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends JobRepository 
       query[Job]
         .filter(_.id == lift(id))
         .updateValue(lift(current))
-        .returning(j => j)
+        .returning(r => r)
     }
   } yield updated
 
@@ -59,7 +59,7 @@ class JobRepositoryLive(quill: Quill.Postgres[SnakeCase]) extends JobRepository 
     query[Job]
       .filter(_.id == lift(id))
       .delete
-      .returning(j => j)
+      .returning(r => r)
   }
 
   override def getById(id: Long): Task[Option[Job]] = run {

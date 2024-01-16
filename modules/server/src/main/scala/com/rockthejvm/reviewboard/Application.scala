@@ -4,11 +4,18 @@ import com.rockthejvm.reviewboard.config.{Configs, JWTConfig}
 import com.rockthejvm.reviewboard.http.HttpApi
 import com.rockthejvm.reviewboard.repositories.{
   CompanyRepositoryLive,
+  RecoveryTokensRepositoryLive,
   Repository,
   ReviewRepositoryLive,
   UserRepositoryLive
 }
-import com.rockthejvm.reviewboard.services.{CompanyServiceLive, JWTServiceLive, ReviewServiceLive, UserServiceLive}
+import com.rockthejvm.reviewboard.services.{
+  CompanyServiceLive,
+  EmailServiceLive,
+  JWTServiceLive,
+  ReviewServiceLive,
+  UserServiceLive
+}
 import io.getquill.SnakeCase
 import sttp.tapir.*
 import sttp.tapir.server.ziohttp.{ZioHttpInterpreter, ZioHttpServerOptions}
@@ -32,10 +39,12 @@ object Application extends ZIOAppDefault {
     ReviewServiceLive.layer,
     UserServiceLive.layer,
     JWTServiceLive.configuredLayer,
+    EmailServiceLive.configuredLayer,
     // repos
     CompanyRepositoryLive.layer,
     ReviewRepositoryLive.layer,
     UserRepositoryLive.layer,
+    RecoveryTokensRepositoryLive.configuredLayer,
     // database
     Repository.dataLayer
   )

@@ -76,7 +76,7 @@ object JWTServiceDemo extends ZIOAppDefault {
     _         <- Console.printLine(userId)
   } yield ()
 
-  override def run: ZIO[Any & ZIOAppArgs with Scope, Any, Any] = {
+  override def run: ZIO[Any & ZIOAppArgs & Scope, Any, Any] = {
     program.provide(
       ZLayer.fromZIO(Configs.makeConfig[JWTConfig]("rockthejvm.jwt")),
       JWTServiceLive.layer

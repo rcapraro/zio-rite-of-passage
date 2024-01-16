@@ -1,7 +1,7 @@
 package com.rockthejvm.reviewboard.services
 
 import com.rockthejvm.reviewboard.domain.data.{User, UserId, UserToken}
-import com.rockthejvm.reviewboard.repositories.UserRepository
+import com.rockthejvm.reviewboard.repositories.{RecoveryTokensRepository, UserRepository}
 import zio.*
 import zio.test.*
 object UserServiceSpec extends ZIOSpecDefault {
@@ -48,8 +48,31 @@ object UserServiceSpec extends ZIOSpecDefault {
 
       override def verifyToken(token: String): Task[UserId] = ZIO.succeed(UserId(daniel.id, daniel.email))
     }
-
   }
+
+  private val stubEmailsLayer = ZLayer.succeed {
+    new EmailService {
+      override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
+    }
+  }
+
+  private val stubTokenRepoLayer = ZLayer.succeed {
+    new RecoveryTokensRepository {
+
+      private val db = collection.mutable.Map[String, String]()
+
+      override def checkToken(email: String, token: String): Task[Boolean] =
+        ZIO.succeed(db.get(email).contains(token))
+
+      override def getToken(email: String): Task[Option[String]] =
+        ZIO.attempt {
+          val token = util.Random.alphanumeric.take(8).mkString.toUpperCase
+          db += (email -> token)
+          Some(token)
+        }
+    }
+  }
+
   override def spec: Spec[TestEnvironment & Scope, Any] =
     suite("UserServiceSpec")(
       test("create and validate a user") {
@@ -106,6 +129,8 @@ object UserServiceSpec extends ZIOSpecDefault {
     ).provide(
       UserServiceLive.layer,
       stubJwtLayer,
-      stubRepoLayer
+      stubEmailsLayer,
+      stubRepoLayer,
+      stubTokenRepoLayer
     )
 }

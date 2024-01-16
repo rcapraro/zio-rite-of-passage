@@ -36,3 +36,21 @@ Content-Type: application/json
   "email": "daniel@rockthejvm.com",
   "password": "rockthejvm"
 }
+
+### Forgot password
+POST http://localhost:8080/users/forgot
+Content-Type: application/json
+
+{
+  "email": "daniel@rockthejvm.com"
+}
+
+### Recover password
+POST http://localhost:8080/users/recover
+Content-Type: application/json
+
+{
+  "email": "daniel@rockthejvm.com",
+  "token" :"FDMHXQWG",
+  "newPassword": "anotherone"
+}

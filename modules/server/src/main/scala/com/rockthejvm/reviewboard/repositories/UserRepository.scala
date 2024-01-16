@@ -26,7 +26,7 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends User
     run(
       query[User]
         .insertValue(lift(user))
-        .returning(u => u)
+        .returning(r => r)
     )
 
   override def getById(id: Long): Task[Option[User]] =
@@ -48,7 +48,7 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends User
         query[User]
           .filter(_.id == lift(id))
           .updateValue(lift(op(current)))
-          .returning(u => u)
+          .returning(r => r)
       )
     } yield updated
 
@@ -57,7 +57,7 @@ class UserRepositoryLive private (quill: Quill.Postgres[SnakeCase]) extends User
       query[User]
         .filter(_.id == lift(id))
         .delete
-        .returning(u => u)
+        .returning(r => r)
     )
 }
 

@@ -1,12 +1,7 @@
 package com.rockthejvm.reviewboard.http.endpoints
 
 import com.rockthejvm.reviewboard.domain.data.UserToken
-import com.rockthejvm.reviewboard.http.requests.{
-  DeleteAccountRequest,
-  LoginRequest,
-  RegisterUserAccount,
-  UpdatePasswordRequest
-}
+import com.rockthejvm.reviewboard.http.requests.*
 import com.rockthejvm.reviewboard.http.responses.UserResponse
 import sttp.tapir.*
 import sttp.tapir.generic.auto.*
@@ -23,7 +18,6 @@ trait UserEndpoints extends BaseEndpoint {
     .in(jsonBody[RegisterUserAccount])
     .out(jsonBody[UserResponse])
 
-  // TODO should be an authorized endpoint
   val updatePasswordEndpoint: Endpoint[String, UpdatePasswordRequest, Throwable, UserResponse, Any] =
     secureBaseEndpoints
       .tag("users")
@@ -34,7 +28,6 @@ trait UserEndpoints extends BaseEndpoint {
       .in(jsonBody[UpdatePasswordRequest])
       .out(jsonBody[UserResponse])
 
-  // TODO should be an authorized endpoint
   val deleteEndpoint: Endpoint[String, DeleteAccountRequest, Throwable, UserResponse, Any] = secureBaseEndpoints
     .tag("users")
     .name("delete")
@@ -52,5 +45,21 @@ trait UserEndpoints extends BaseEndpoint {
     .post
     .in(jsonBody[LoginRequest])
     .out(jsonBody[UserToken])
+
+  val forgotPasswordEndpoint: Endpoint[Unit, ForgotPasswordRequest, Throwable, Unit, Any] = baseEndpoint
+    .tag("users")
+    .name("forgotPassword")
+    .description("Trigger mail for password recovery")
+    .in("users" / "forgot")
+    .post
+    .in(jsonBody[ForgotPasswordRequest])
+
+  val recoverPasswordEndpoint: Endpoint[Unit, RecoverPasswordRequest, Throwable, Unit, Any] = baseEndpoint
+    .tag("users")
+    .name("recoverPassword")
+    .description("Set new password based on OTP")
+    .in("users" / "recover")
+    .post
+    .in(jsonBody[RecoverPasswordRequest])
 
 }
