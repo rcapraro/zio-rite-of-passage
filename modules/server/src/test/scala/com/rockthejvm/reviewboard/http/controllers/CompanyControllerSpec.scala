@@ -1,8 +1,8 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.Company
+import com.rockthejvm.reviewboard.domain.data.{Company, User, UserId, UserToken}
 import com.rockthejvm.reviewboard.http.requests.CreateCompanyRequest
-import com.rockthejvm.reviewboard.services.CompanyService
+import com.rockthejvm.reviewboard.services.{CompanyService, JWTService}
 import com.rockthejvm.reviewboard.syntax.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -35,6 +35,14 @@ object CompanyControllerSpec extends ZIOSpecDefault {
     }
   }
 
+  private val jwtServiceStub = new JWTService {
+    override def createToken(user: User): Task[UserToken] =
+      ZIO.succeed(UserToken(user.email, "ALL_IS_GOOD", 999999L))
+
+    override def verifyToken(token: String): Task[UserId] =
+      ZIO.succeed(UserId(1L, "daniel@rockthejvm.com"))
+  }
+
   private def backendStubZIO(endpointFn: CompanyController => ServerEndpoint[Any, Task]) = for {
     // create the controller
     controller <- CompanyController.makeZIO
@@ -55,6 +63,7 @@ object CompanyControllerSpec extends ZIOSpecDefault {
           response <- basicRequest
             .post(uri"/companies")
             .body(CreateCompanyRequest("Rock the JVM", "rockthejvm.com").toJson)
+            .header("Authorization", "Bearer ALL_IS_GOOD")
             .send(backendStub)
         } yield response.body
 
@@ -98,5 +107,8 @@ object CompanyControllerSpec extends ZIOSpecDefault {
             .contains(rockTheJVM)
         }
       }
-    ).provide(ZLayer.succeed(serviceStub))
+    ).provide(
+      ZLayer.succeed(serviceStub),
+      ZLayer.succeed(jwtServiceStub)
+    )
 }

@@ -16,8 +16,6 @@ val sttpVersion       = "3.9.1"
 val javaMailVersion   = "1.6.2"
 val stripeVersion     = "24.9.0"
 
-wartremoverErrors ++= Warts.unsafe
-
 val dependencies = Seq(
   "com.softwaremill.sttp.tapir"   %% "tapir-sttp-client"                 % tapirVersion,
   "com.softwaremill.sttp.tapir"   %% "tapir-json-zio"                    % tapirVersion,

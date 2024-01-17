@@ -9,7 +9,7 @@ import sttp.tapir.json.zio.*
 
 trait CompanyEndpoints extends BaseEndpoint {
 
-  val createEndpoint: Endpoint[Unit, CreateCompanyRequest, Throwable, Company, Any] = baseEndpoint
+  val createEndpoint: Endpoint[String, CreateCompanyRequest, Throwable, Company, Any] = secureBaseEndpoints
     .tag("companies")
     .name("create")
     .description("Create a listing for a company")

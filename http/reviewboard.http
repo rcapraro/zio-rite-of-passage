@@ -1,12 +1,3 @@
-### Create a company
-POST http://localhost:8080/companies
-Content-Type: application/json
-
-{
-  "name": "Rock the JVM",
-  "url": "rockthejvm.com"
-}
-
 ### Create a user
 POST http://localhost:8080/users
 Content-Type: application/json
@@ -53,4 +44,14 @@ Content-Type: application/json
   "email": "daniel@rockthejvm.com",
   "token" :"FDMHXQWG",
   "newPassword": "anotherone"
+}
+
+### Create a company
+POST http://localhost:8080/companies
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+  "name": "Rock the JVM",
+  "url": "rockthejvm.com"
 }

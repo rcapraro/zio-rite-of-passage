@@ -1,8 +1,8 @@
 package com.rockthejvm.reviewboard.http.controllers
 
-import com.rockthejvm.reviewboard.domain.data.Review
+import com.rockthejvm.reviewboard.domain.data.{Review, User, UserId, UserToken}
 import com.rockthejvm.reviewboard.http.requests.CreateReviewRequest
-import com.rockthejvm.reviewboard.services.ReviewService
+import com.rockthejvm.reviewboard.services.{JWTService, ReviewService}
 import com.rockthejvm.reviewboard.syntax.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -54,6 +54,14 @@ object ReviewControllerSpec extends ZIOSpecDefault {
       }
   }
 
+  private val jwtServiceStub = new JWTService {
+    override def createToken(user: User): Task[UserToken] =
+      ZIO.succeed(UserToken(user.email, "ALL_IS_GOOD", 999999L))
+
+    override def verifyToken(token: String): Task[UserId] =
+      ZIO.succeed(UserId(1L, "daniel@rockthejvm.com"))
+  }
+
   private def backendStubZIO(endpointFn: ReviewController => ServerEndpoint[Any, Task]) = for {
     // create the controller
     controller <- ReviewController.makeZIO
@@ -83,6 +91,7 @@ object ReviewControllerSpec extends ZIOSpecDefault {
                 review = "all good"
               ).toJson
             )
+            .header("Authorization", "Bearer ALL_IS_GOOD")
             .send(backendStub)
         } yield response.body
 
@@ -120,5 +129,8 @@ object ReviewControllerSpec extends ZIOSpecDefault {
             responseNotFound.body.toOption.flatMap(_.fromJson[List[Review]].toOption).contains(List.empty)
         )
       }
-    ).provide(ZLayer.succeed(serviceStub))
+    ).provide(
+      ZLayer.succeed(serviceStub),
+      ZLayer.succeed(jwtServiceStub)
+    )
 }

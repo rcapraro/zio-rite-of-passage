@@ -1,22 +1,18 @@
 package com.rockthejvm.reviewboard.integration
 
-import com.rockthejvm.reviewboard.config.JWTConfig
+import com.rockthejvm.reviewboard.config.{JWTConfig, RecoveryTokensConfig}
 import com.rockthejvm.reviewboard.domain.data.UserToken
 import com.rockthejvm.reviewboard.http.controllers.*
 import com.rockthejvm.reviewboard.http.requests.{
   DeleteAccountRequest,
+  ForgotPasswordRequest,
   LoginRequest,
+  RecoverPasswordRequest,
   RegisterUserAccount,
   UpdatePasswordRequest
 }
 import com.rockthejvm.reviewboard.http.responses.UserResponse
-import com.rockthejvm.reviewboard.repositories.{
-  RecoveryTokensRepositoryLive,
-  Repository,
-  RepositorySpec,
-  UserRepository,
-  UserRepositoryLive
-}
+import com.rockthejvm.reviewboard.repositories.*
 import com.rockthejvm.reviewboard.services.*
 import sttp.client3.*
 import sttp.client3.testing.SttpBackendStub
@@ -62,6 +58,13 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
     def post[B: JsonCodec](path: String, payload: A): Task[Option[B]] =
       sendRequest(Method.POST, path, payload, None)
 
+    def postNoResponse(path: String, payload: A): Task[Unit] =
+      basicRequest
+        .method(Method.POST, uri"$path")
+        .body(payload.toJson)
+        .send(backend)
+        .unit
+
     def postAuth[B: JsonCodec](path: String, payload: A, token: String): Task[Option[B]] =
       sendRequest(Method.POST, path, payload, Some(token))
 
@@ -77,6 +80,19 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
     def deleteAuth[B: JsonCodec](path: String, payload: A, token: String): Task[Option[B]] =
       sendRequest(Method.DELETE, path, payload, Some(token))
   }
+
+  class EmailServiceProbe extends EmailService {
+    private val db = collection.mutable.Map[String, String]()
+
+    override def sendEmail(to: String, subject: String, content: String): Task[Unit] = ZIO.unit
+
+    override def sendPasswordRecoveryEmail(to: String, token: String): Task[Unit] =
+      ZIO.succeed(db += (to -> token))
+
+    // specific to the test
+    def probeToken(email: String): Task[Option[String]] = ZIO.succeed(db.get(email))
+  }
+  val emailServiceLayer: ZLayer[Any, Nothing, EmailServiceProbe] = ZLayer.succeed(new EmailServiceProbe)
 
   override def spec: Spec[TestEnvironment & Scope, Any] =
     suite("UserFlowSpec")(
@@ -136,14 +152,34 @@ object UserFlowSpec extends ZIOSpecDefault with RepositorySpec {
             )
           maybeUser <- userRepo.getByEmail("daniel@rockthejvm.com")
         } yield assertTrue(maybeOldUser.exists(_.email == "daniel@rockthejvm.com") && maybeUser.isEmpty)
+      },
+      test("recover password flow") {
+        for {
+          backendStub <- backendStubZIO
+          _ <- backendStub
+            .post[UserResponse]("/users", RegisterUserAccount(email = "daniel@rockthejvm.com", password = "rockthejvm"))
+          _ <- backendStub
+            .postNoResponse("/users/forgot", ForgotPasswordRequest(email = "daniel@rockthejvm.com"))
+          emailServiceProbe <- ZIO.service[EmailServiceProbe]
+          token <- emailServiceProbe
+            .probeToken("daniel@rockthejvm.com")
+            .someOrFail(new RuntimeException("token was NOT emailed!"))
+          _ <- backendStub
+            .postNoResponse("/users/recover", RecoverPasswordRequest("daniel@rockthejvm.com", token, "scalarulez"))
+          maybeOldToken <- backendStub
+            .post[UserToken]("/users/login", LoginRequest("daniel@rockthejvm.com", "rockthejvm"))
+          maybeNewToken <- backendStub
+            .post[UserToken]("/users/login", LoginRequest("daniel@rockthejvm.com", "scalarulez"))
+        } yield assertTrue(maybeOldToken.isEmpty && maybeNewToken.nonEmpty)
       }
     ).provide(
       UserServiceLive.layer,
       JWTServiceLive.layer,
-      EmailServiceLive.configuredLayer,
+      emailServiceLayer,
       UserRepositoryLive.layer,
-      RecoveryTokensRepositoryLive.configuredLayer,
+      RecoveryTokensRepositoryLive.layer,
       ZLayer.succeed(JWTConfig("secret", 3600)),
+      ZLayer.succeed(RecoveryTokensConfig(1.hour.toMillis)),
       Repository.quillLayer,
       postgresDataSourceLayer,
       Scope.default
